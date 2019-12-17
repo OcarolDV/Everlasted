@@ -104,12 +104,11 @@ class enemy(object):
         #         pygame.draw.rect(win, (255, 255, 255), self.hitbox)
 
 swordimg = pygame.image.load('Sword.png')
-swordimg = pygame.transform.scale(swordimg, (40 ,40))
-swordimgatk = pygame.transform.rotate(swordimg, 130)
+swordimg = pygame.transform.scale(swordimg, (70 ,40))
+swordimgatk = pygame.transform.rotate(swordimg, 150)
 swordimgr = pygame.transform.flip(swordimg, True, False)
-swordimgatkr = pygame.transform.rotate(swordimgr, 220)
+swordimgatkr = pygame.transform.rotate(swordimgr, 210)
 class sword(object):
-
     def __init__(self, x, y, width, height):
         self.x = x
         self.y = y
@@ -118,15 +117,19 @@ class sword(object):
         self.hitbox = (self.x, self.y, self.width, self.height)
 
     def draw(self, win):
-        if Elige.right and Elige.isSlash == False:
-            win.blit(swordimgr, (Elige.x + 10, Elige.y))
-        if Elige.right and Elige.isSlash == True:
-            win.blit(swordimgatkr, (Elige.x + 50, Elige.y + 10))
-        if Elige.left and Elige.isSlash == True:
-            win.blit(swordimgatk, (Elige.x - 50, Elige.y + 10))
-        elif Elige.left:
-            win.blit(swordimg, (Elige.x + 10, Elige.y))
+        keys = pygame.key.get_pressed()
+        pygame.draw.rect(win, (255,0,0), self.hitbox)
 
+        if keys[pygame.K_RETURN] and anicool >= 500:
+            if Elige.right:
+                win.blit(swordimgatkr, (Elige.x + 50, Elige.y + 5))
+            if Elige.left:
+                win.blit(swordimgatk, (Elige.x - 50, Elige.y + 5))
+        else:
+            if Elige.right and Elige.isSlash == False:
+                win.blit(swordimgr, (Elige.x - 5, Elige.y))
+            if Elige.left:
+                win.blit(swordimg, (Elige.x + 5, Elige.y))
 
 slashcool = 0
 dmgcool = 0
@@ -136,7 +139,7 @@ enemies = []
 bg = pygame.image.load('BG.png')
 bg = pygame.transform.scale(bg, (1280, 720))
 Elige = player(640, 480, 30, 50)
-Sword = sword(640, 480, 50, 30)
+Sword = sword(640, 480, 50, 20)
 enemies.append(enemy(1280, 150000, 30, 50, 450))
 enemies.append(enemy(1280, 150000, 30, 50, 450))
 for i in range(3):
@@ -191,10 +194,11 @@ def EnemyMovement(velocity):
             e.right = True
 
 def SwordMovement():
-    if Elige.left == True and Sword.x >= Elige.x - 30:
-        Sword.x -= 20
-    if Elige.right == True and Sword.x <= Elige.x + 20:
-        Sword.x += 20
+    if keys[pygame.K_RETURN]:
+        if Elige.left == True and Sword.x >= Elige.x - 30:
+            Sword.x -= 20
+        if Elige.right == True and Sword.x <= Elige.x + 20:
+            Sword.x += 20
 
 
 
@@ -217,7 +221,7 @@ counter = 5
 
 def redrawGameWindow():
     win.blit(bg, (0, 0))
-
+    global counter
     Sword.draw(win)
 
     text = font.render('exp: ' + str(exp), 1, (0, 0, 0))
@@ -253,6 +257,8 @@ def redrawGameWindow():
 
 
 stageComplete = False
+anicool = 0
+cool3 = 0
 
 # Mainloop
 run = True
@@ -283,6 +289,9 @@ while run:
     dmgcool += pygame.time.get_ticks() - cool2
     cool2 = pygame.time.get_ticks()
 
+    anicool += pygame.time.get_ticks() - cool3
+    cool3 = pygame.time.get_ticks()
+
     keys = pygame.key.get_pressed()
     EligeMovement(1)
     EnemyMovement(2)
@@ -298,22 +307,24 @@ while run:
     else:
         EligeMovement(5)
 
-    if keys[pygame.K_RETURN]:
+    if keys[pygame.K_RETURN] and anicool >= 300:
         Elige.isSlash = True
         if Elige.right == True:
-            Sword = sword(Elige.x + 35, Elige.y + 20, 70, 30)
+            Sword = sword(Elige.x + 45, Elige.y + 20, 70, 30)
         if Elige.left == True:
-            Sword = sword(Elige.x - 45, Elige.y + 20, 70, 30)
-        SwordMovement()
+            Sword = sword(Elige.x - 55, Elige.y + 20, 70, 30)
+        anicool = 0
+
     else:
         Elige.isSlash = False
+
 
     if Elige.isSlash == True:
         for e in enemies:
             if Sword.hitbox[1] < e.hitbox[1] + e.hitbox[3] and Sword.hitbox[1] + Sword.hitbox[3] > e.hitbox[1]:
                 if Sword.hitbox[0] + Sword.hitbox[2] > e.hitbox[0] and Sword.hitbox[0] < e.hitbox[0] + \
                         e.hitbox[2]:
-                    if dmgcool >= 100:
+                    if dmgcool >= 1000:
                         e.isHit = True
                         e.health -= Elige.slashdmg
                         dmgcool = 0
